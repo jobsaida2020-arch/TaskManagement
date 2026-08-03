@@ -12,9 +12,12 @@ const PRIORITY_LABELS = {
   low: '低',
 };
 
+const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
+
 let tasks = loadTasks();
 let editingTaskId = null;
 let draggingTaskId = null;
+let sortModes = { not_started: 'manual', in_progress: 'manual', done: 'manual' };
 
 const board = document.getElementById('board');
 const modalOverlay = document.getElementById('taskModalOverlay');
@@ -32,7 +35,11 @@ function loadTasks() {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (raw) {
     try {
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      parsed.forEach((task, index) => {
+        if (typeof task.order !== 'number') task.order = index;
+      });
+      return parsed;
     } catch (e) {
       console.error('タスクの読み込みに失敗しました', e);
     }
@@ -46,6 +53,7 @@ function loadTasks() {
       dueDate: '',
       priority: 'medium',
       status: 'not_started',
+      order: 0,
       createdAt: now,
       updatedAt: now,
     },
@@ -56,6 +64,7 @@ function loadTasks() {
       dueDate: '',
       priority: 'high',
       status: 'in_progress',
+      order: 0,
       createdAt: now,
       updatedAt: now,
     },
@@ -66,10 +75,35 @@ function loadTasks() {
       dueDate: '',
       priority: 'low',
       status: 'done',
+      order: 0,
       createdAt: now,
       updatedAt: now,
     },
   ];
+}
+
+function nextOrderValue(status) {
+  const inStatus = tasks.filter((t) => t.status === status);
+  if (inStatus.length === 0) return 0;
+  return Math.max(...inStatus.map((t) => t.order)) + 1;
+}
+
+function getSortedTasksForStatus(status) {
+  const list = tasks.filter((task) => task.status === status);
+  const mode = sortModes[status];
+  if (mode === 'priority') {
+    list.sort((a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority] || a.order - b.order);
+  } else if (mode === 'dueDate') {
+    list.sort((a, b) => {
+      if (!a.dueDate && !b.dueDate) return a.order - b.order;
+      if (!a.dueDate) return 1;
+      if (!b.dueDate) return -1;
+      return a.dueDate.localeCompare(b.dueDate) || a.order - b.order;
+    });
+  } else {
+    list.sort((a, b) => a.order - b.order);
+  }
+  return list;
 }
 
 function saveTasks() {
@@ -80,9 +114,7 @@ function render() {
   Object.keys(STATUS_LABELS).forEach((status) => {
     const list = board.querySelector(`.card-list[data-status="${status}"]`);
     list.innerHTML = '';
-    tasks
-      .filter((task) => task.status === status)
-      .forEach((task) => list.appendChild(createCardElement(task)));
+    getSortedTasksForStatus(status).forEach((task) => list.appendChild(createCardElement(task)));
   });
 }
 
@@ -127,11 +159,34 @@ function createCardElement(task) {
   return card;
 }
 
+function getDragAfterElement(list, y) {
+  const elements = [...list.querySelectorAll('.task-card:not(.dragging)')];
+  return elements.reduce(
+    (closest, child) => {
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      if (offset < 0 && offset > closest.offset) {
+        return { offset, element: child };
+      }
+      return closest;
+    },
+    { offset: Number.NEGATIVE_INFINITY, element: null }
+  ).element;
+}
+
 function setupDragAndDrop() {
   board.querySelectorAll('.card-list').forEach((list) => {
     list.addEventListener('dragover', (e) => {
       e.preventDefault();
       list.classList.add('drag-over');
+      const dragging = list.querySelector('.task-card.dragging');
+      if (!dragging) return;
+      const afterElement = getDragAfterElement(list, e.clientY);
+      if (afterElement == null) {
+        list.appendChild(dragging);
+      } else {
+        list.insertBefore(dragging, afterElement);
+      }
     });
     list.addEventListener('dragleave', () => {
       list.classList.remove('drag-over');
@@ -142,13 +197,23 @@ function setupDragAndDrop() {
       if (!draggingTaskId) return;
       const newStatus = list.dataset.status;
       const task = tasks.find((t) => t.id === draggingTaskId);
-      if (task && task.status !== newStatus) {
-        task.status = newStatus;
-        task.updatedAt = new Date().toISOString();
-        saveTasks();
-        render();
-        setupDragAndDrop();
-      }
+      if (!task) return;
+
+      task.status = newStatus;
+      task.updatedAt = new Date().toISOString();
+
+      // 表示順(DOM上の並び)をそのままtaskのorderに反映し、手動並び替えモードに切り替える
+      const orderedIds = [...list.querySelectorAll('.task-card')].map((el) => el.dataset.id);
+      orderedIds.forEach((id, index) => {
+        const t = tasks.find((x) => x.id === id);
+        if (t) t.order = index;
+      });
+      sortModes[newStatus] = 'manual';
+      updateSortButtons(newStatus);
+
+      saveTasks();
+      render();
+      setupDragAndDrop();
     });
   });
 }
@@ -215,13 +280,15 @@ taskForm.addEventListener('submit', (e) => {
     task.priority = priorityInput.value;
     task.updatedAt = now;
   } else {
+    const status = modalOverlay.dataset.status || 'not_started';
     tasks.push({
       id: crypto.randomUUID(),
       title,
       description: descriptionInput.value.trim(),
       dueDate: dueDateInput.value,
       priority: priorityInput.value,
-      status: modalOverlay.dataset.status || 'not_started',
+      status,
+      order: nextOrderValue(status),
       createdAt: now,
       updatedAt: now,
     });
@@ -255,6 +322,23 @@ document.addEventListener('keydown', (e) => {
 
 board.querySelectorAll('.add-btn').forEach((btn) => {
   btn.addEventListener('click', () => openAddModal(btn.dataset.status));
+});
+
+function updateSortButtons(status) {
+  const controls = board.querySelector(`.sort-controls[data-status="${status}"]`);
+  controls.querySelectorAll('.sort-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.sort === sortModes[status]);
+  });
+}
+
+board.querySelectorAll('.sort-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const status = btn.closest('.sort-controls').dataset.status;
+    sortModes[status] = btn.dataset.sort;
+    updateSortButtons(status);
+    render();
+    setupDragAndDrop();
+  });
 });
 
 saveTasks();

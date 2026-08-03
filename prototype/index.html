@@ -17,6 +17,11 @@
         <h2>未着手</h2>
         <button type="button" class="add-btn" data-status="not_started">＋ タスクを追加</button>
       </div>
+      <div class="sort-controls" data-status="not_started">
+        <button type="button" class="sort-btn active" data-sort="manual">手動</button>
+        <button type="button" class="sort-btn" data-sort="priority">優先度順</button>
+        <button type="button" class="sort-btn" data-sort="dueDate">期限順</button>
+      </div>
       <div class="card-list" data-status="not_started"></div>
     </section>
 
@@ -25,6 +30,11 @@
         <h2>進行中</h2>
         <button type="button" class="add-btn" data-status="in_progress">＋ タスクを追加</button>
       </div>
+      <div class="sort-controls" data-status="in_progress">
+        <button type="button" class="sort-btn active" data-sort="manual">手動</button>
+        <button type="button" class="sort-btn" data-sort="priority">優先度順</button>
+        <button type="button" class="sort-btn" data-sort="dueDate">期限順</button>
+      </div>
       <div class="card-list" data-status="in_progress"></div>
     </section>
 
@@ -32,6 +42,11 @@
       <div class="column-header">
         <h2>完了</h2>
         <button type="button" class="add-btn" data-status="done">＋ タスクを追加</button>
+      </div>
+      <div class="sort-controls" data-status="done">
+        <button type="button" class="sort-btn active" data-sort="manual">手動</button>
+        <button type="button" class="sort-btn" data-sort="priority">優先度順</button>
+        <button type="button" class="sort-btn" data-sort="dueDate">期限順</button>
       </div>
       <div class="card-list" data-status="done"></div>
     </section>
