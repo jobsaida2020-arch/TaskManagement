@@ -1,0 +1,33 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-taskmanagement}
+      POSTGRES_USER: ${POSTGRES_USER:-taskmanagement}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-taskmanagement}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-taskmanagement} -d ${POSTGRES_DB:-taskmanagement}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-taskmanagement}
+      DB_USER: ${POSTGRES_USER:-taskmanagement}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-taskmanagement}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
