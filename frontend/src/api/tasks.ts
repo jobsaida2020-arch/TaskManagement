@@ -19,3 +19,22 @@ export async function fetchTasks(params: FetchTasksParams = {}): Promise<Task[]>
   }
   return response.json();
 }
+
+export interface CreateTaskInput {
+  title: string;
+  description?: string;
+  dueDate?: string | null;
+  priority?: Priority;
+}
+
+export async function createTask(input: CreateTaskInput): Promise<Task> {
+  const response = await fetch(`${API_BASE_URL}/api/tasks`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!response.ok) {
+    throw new Error(`タスクの登録に失敗しました (status: ${response.status})`);
+  }
+  return response.json();
+}
