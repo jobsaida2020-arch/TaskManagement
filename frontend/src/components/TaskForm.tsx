@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { createTask } from "../api/tasks";
+import { useEscapeKey } from "../hooks/useEscapeKey";
 import type { Priority } from "../types/task";
 import { TaskFormFields } from "./TaskFormFields";
 
@@ -16,6 +17,8 @@ export function TaskForm({ onCreated, onClose }: TaskFormProps) {
   const [priority, setPriority] = useState<Priority>("MEDIUM");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEscapeKey(onClose);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -44,9 +47,15 @@ export function TaskForm({ onCreated, onClose }: TaskFormProps) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="task-form-title"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="modal-header">
-          <h2>新しいタスク</h2>
+          <h2 id="task-form-title">新しいタスク</h2>
           <button type="button" className="modal-close" onClick={onClose} aria-label="閉じる">
             ×
           </button>

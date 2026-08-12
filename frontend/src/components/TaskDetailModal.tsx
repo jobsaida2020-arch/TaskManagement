@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { updateTask } from "../api/tasks";
+import { useEscapeKey } from "../hooks/useEscapeKey";
 import type { Priority, Status, Task } from "../types/task";
 import { TaskFormFields } from "./TaskFormFields";
 
@@ -23,6 +24,8 @@ export function TaskDetailModal({ task, onUpdated, onClose }: TaskDetailModalPro
   const [priority, setPriority] = useState<Priority>(task.priority);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEscapeKey(onClose);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -51,9 +54,15 @@ export function TaskDetailModal({ task, onUpdated, onClose }: TaskDetailModalPro
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="task-detail-title"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="modal-header">
-          <h2>タスク詳細</h2>
+          <h2 id="task-detail-title">タスク詳細</h2>
           <button type="button" className="modal-close" onClick={onClose} aria-label="閉じる">
             ×
           </button>
