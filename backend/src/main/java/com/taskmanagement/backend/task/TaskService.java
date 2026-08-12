@@ -9,8 +9,10 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional(readOnly = true)
 public class TaskService {
 
     private final TaskRepository taskRepository;
@@ -38,6 +40,7 @@ public class TaskService {
         return taskRepository.findById(id);
     }
 
+    @Transactional
     public Task createTask(TaskCreateRequest request) {
         Task task = new Task();
         task.setTitle(request.title());
@@ -50,6 +53,7 @@ public class TaskService {
         return taskRepository.save(task);
     }
 
+    @Transactional
     public Optional<Task> updateTask(Long id, TaskUpdateRequest request) {
         return taskRepository.findById(id).map(task -> {
             if (request.title() != null) {
@@ -68,6 +72,7 @@ public class TaskService {
         });
     }
 
+    @Transactional
     public Optional<Task> moveTask(Long id, TaskMoveRequest request) {
         return taskRepository.findById(id).map(task -> {
             Status oldStatus = task.getStatus();
@@ -94,6 +99,7 @@ public class TaskService {
         });
     }
 
+    @Transactional
     public boolean deleteTask(Long id) {
         if (!taskRepository.existsById(id)) {
             return false;
