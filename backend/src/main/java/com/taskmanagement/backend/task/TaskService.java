@@ -1,5 +1,10 @@
 package com.taskmanagement.backend.task;
 
+import com.taskmanagement.backend.task.dto.TaskCreateRequest;
+import com.taskmanagement.backend.task.dto.TaskMoveRequest;
+import com.taskmanagement.backend.task.dto.TaskUpdateRequest;
+
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,7 +19,33 @@ public class TaskService {
         this.taskRepository = taskRepository;
     }
 
-    public Task createTask(Task task) {
+    public List<Task> getTasks(Status status, Priority priority) {
+        if (status != null && priority == null) {
+            return taskRepository.findByStatusOrderByPositionAsc(status);
+        }
+        List<Task> tasks;
+        if (status != null) {
+            tasks = taskRepository.findByStatusAndPriority(status, priority);
+        } else if (priority != null) {
+            tasks = taskRepository.findByPriority(priority);
+        } else {
+            tasks = taskRepository.findAll();
+        }
+        return tasks.stream().sorted(Comparator.comparing(Task::getPosition)).toList();
+    }
+
+    public Optional<Task> getTask(Long id) {
+        return taskRepository.findById(id);
+    }
+
+    public Task createTask(TaskCreateRequest request) {
+        Task task = new Task();
+        task.setTitle(request.title());
+        task.setDescription(request.description());
+        task.setDueDate(request.dueDate());
+        if (request.priority() != null) {
+            task.setPriority(request.priority());
+        }
         task.setPosition(nextPosition(task.getStatus()));
         return taskRepository.save(task);
     }
