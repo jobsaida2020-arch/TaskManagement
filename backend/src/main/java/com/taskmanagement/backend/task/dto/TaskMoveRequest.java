@@ -2,5 +2,10 @@ package com.taskmanagement.backend.task.dto;
 
 import com.taskmanagement.backend.task.Status;
 
-public record TaskMoveRequest(Status status, int position) {
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+
+public record TaskMoveRequest(
+        @NotNull Status status,
+        @NotNull @PositiveOrZero Integer position) {
 }
