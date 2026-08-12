@@ -1,5 +1,6 @@
 package com.taskmanagement.backend.task;
 
+import com.taskmanagement.backend.exception.ResourceNotFoundException;
 import com.taskmanagement.backend.task.dto.TaskCreateRequest;
 import com.taskmanagement.backend.task.dto.TaskMoveRequest;
 import com.taskmanagement.backend.task.dto.TaskResponse;
@@ -41,10 +42,10 @@ public class TaskController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TaskResponse> getTask(@PathVariable Long id) {
+    public TaskResponse getTask(@PathVariable Long id) {
         return taskService.getTask(id)
-                .map(task -> ResponseEntity.ok(TaskResponse.from(task)))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .map(TaskResponse::from)
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found: id=" + id));
     }
 
     @PostMapping
@@ -54,22 +55,24 @@ public class TaskController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<TaskResponse> updateTask(@PathVariable Long id, @Valid @RequestBody TaskUpdateRequest request) {
+    public TaskResponse updateTask(@PathVariable Long id, @Valid @RequestBody TaskUpdateRequest request) {
         return taskService.updateTask(id, request)
-                .map(task -> ResponseEntity.ok(TaskResponse.from(task)))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .map(TaskResponse::from)
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found: id=" + id));
     }
 
     @PatchMapping("/{id}/position")
-    public ResponseEntity<TaskResponse> moveTask(@PathVariable Long id, @Valid @RequestBody TaskMoveRequest request) {
+    public TaskResponse moveTask(@PathVariable Long id, @Valid @RequestBody TaskMoveRequest request) {
         return taskService.moveTask(id, request)
-                .map(task -> ResponseEntity.ok(TaskResponse.from(task)))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .map(TaskResponse::from)
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found: id=" + id));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
-        boolean deleted = taskService.deleteTask(id);
-        return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+        if (!taskService.deleteTask(id)) {
+            throw new ResourceNotFoundException("Task not found: id=" + id);
+        }
+        return ResponseEntity.noContent().build();
     }
 }
