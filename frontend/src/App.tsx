@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import "./App.css";
-import { fetchTasks, moveTask } from "./api/tasks";
+import { deleteTask, fetchTasks, moveTask } from "./api/tasks";
 import { Board } from "./components/Board";
+import { ConfirmDialog } from "./components/ConfirmDialog";
 import { FilterBar } from "./components/FilterBar";
 import { TaskDetailModal } from "./components/TaskDetailModal";
 import { TaskForm } from "./components/TaskForm";
@@ -15,6 +16,7 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [taskPendingDelete, setTaskPendingDelete] = useState<Task | null>(null);
 
   const loadTasks = useCallback(async (priorityFilter: Priority | "") => {
     setLoading(true);
@@ -45,6 +47,21 @@ function App() {
     } catch (e) {
       setTasks(previousTasks);
       setError(e instanceof Error ? e.message : "タスクの移動に失敗しました");
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    const target = taskPendingDelete;
+    if (!target) return;
+    setTaskPendingDelete(null);
+    try {
+      await deleteTask(target.id);
+      if (selectedTask?.id === target.id) {
+        setSelectedTask(null);
+      }
+      loadTasks(priority);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "タスクの削除に失敗しました");
     }
   };
 
@@ -80,10 +97,23 @@ function App() {
         />
       )}
 
+      {taskPendingDelete && (
+        <ConfirmDialog
+          message={`「${taskPendingDelete.title}」を削除します。よろしいですか?`}
+          onCancel={() => setTaskPendingDelete(null)}
+          onConfirm={handleDeleteConfirm}
+        />
+      )}
+
       {loading && !initialLoadDone && <p className="status-message">読み込み中...</p>}
       {error && <p className="status-message error">{error}</p>}
       {initialLoadDone && !error && (
-        <Board tasks={tasks} onSelectTask={setSelectedTask} onMoveTask={handleMoveTask} />
+        <Board
+          tasks={tasks}
+          onSelectTask={setSelectedTask}
+          onMoveTask={handleMoveTask}
+          onDeleteRequest={setTaskPendingDelete}
+        />
       )}
     </div>
   );

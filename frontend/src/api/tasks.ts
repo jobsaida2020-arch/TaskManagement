@@ -69,3 +69,10 @@ export async function moveTask(id: number, status: Status, position: number): Pr
   }
   return response.json();
 }
+
+export async function deleteTask(id: number): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/tasks/${id}`, { method: "DELETE" });
+  if (!response.ok) {
+    throw new Error(`タスクの削除に失敗しました (status: ${response.status})`);
+  }
+}

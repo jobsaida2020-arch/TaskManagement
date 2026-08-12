@@ -32,6 +32,7 @@ interface BoardProps {
   tasks: Task[];
   onSelectTask: (task: Task) => void;
   onMoveTask: (taskId: number, status: Status, position: number) => void;
+  onDeleteRequest: (task: Task) => void;
 }
 
 function tasksOfStatus(tasks: Task[], status: Status): Task[] {
@@ -92,6 +93,7 @@ function Column({
   onDragEndTask,
   onColumnDragOver,
   onColumnDrop,
+  onDeleteRequest,
 }: {
   status: Status;
   label: string;
@@ -105,6 +107,7 @@ function Column({
   onDragEndTask: () => void;
   onColumnDragOver: (status: Status, e: DragEvent<HTMLDivElement>) => void;
   onColumnDrop: (status: Status, e: DragEvent<HTMLDivElement>) => void;
+  onDeleteRequest: (task: Task) => void;
 }) {
   const placeholderIndex = dropTarget?.status === status ? dropTarget.index : null;
 
@@ -149,6 +152,7 @@ function Column({
               onSelect={onSelectTask}
               onDragStart={onDragStartTask}
               onDragEnd={onDragEndTask}
+              onDeleteRequest={onDeleteRequest}
             />
           ),
         )}
@@ -157,7 +161,7 @@ function Column({
   );
 }
 
-export function Board({ tasks, onSelectTask, onMoveTask }: BoardProps) {
+export function Board({ tasks, onSelectTask, onMoveTask, onDeleteRequest }: BoardProps) {
   const [columnSort, setColumnSort] = useState<Record<Status, SortMode>>({
     NOT_STARTED: "manual",
     IN_PROGRESS: "manual",
@@ -227,6 +231,7 @@ export function Board({ tasks, onSelectTask, onMoveTask }: BoardProps) {
           onDragEndTask={handleDragEndTask}
           onColumnDragOver={handleColumnDragOver}
           onColumnDrop={handleColumnDrop}
+          onDeleteRequest={onDeleteRequest}
         />
       ))}
     </div>
