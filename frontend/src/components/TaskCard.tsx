@@ -1,4 +1,4 @@
-import type { DragEvent } from "react";
+import type { DragEvent, KeyboardEvent } from "react";
 import type { Task } from "../types/task";
 
 const PRIORITY_LABEL: Record<Task["priority"], string> = {
@@ -30,14 +30,26 @@ export function TaskCard({
     onDragStart(task.id);
   };
 
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.target !== e.currentTarget) return;
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onSelect(task);
+    }
+  };
+
   return (
     <div
       className={`task-card${isDragging ? " dragging" : ""}`}
       data-task-id={task.id}
       draggable
+      tabIndex={0}
+      role="button"
+      aria-label={`${task.title}の詳細を開く`}
       onDragStart={handleDragStart}
       onDragEnd={onDragEnd}
       onClick={() => onSelect(task)}
+      onKeyDown={handleKeyDown}
     >
       <div className="task-card-header">
         <div className="task-card-title">{task.title}</div>
