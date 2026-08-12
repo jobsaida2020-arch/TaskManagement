@@ -1,6 +1,10 @@
 package com.taskmanagement.backend.task;
 
-import java.util.Comparator;
+import com.taskmanagement.backend.task.dto.TaskCreateRequest;
+import com.taskmanagement.backend.task.dto.TaskMoveRequest;
+import com.taskmanagement.backend.task.dto.TaskResponse;
+import com.taskmanagement.backend.task.dto.TaskUpdateRequest;
+
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -19,60 +23,45 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/tasks")
 public class TaskController {
 
-    private final TaskRepository taskRepository;
     private final TaskService taskService;
 
-    public TaskController(TaskRepository taskRepository, TaskService taskService) {
-        this.taskRepository = taskRepository;
+    public TaskController(TaskService taskService) {
         this.taskService = taskService;
     }
 
     @GetMapping
-    public List<Task> getTasks(
+    public List<TaskResponse> getTasks(
             @RequestParam(required = false) Status status,
             @RequestParam(required = false) Priority priority) {
-        if (status != null && priority != null) {
-            return taskRepository.findByStatusAndPriority(status, priority).stream()
-                    .sorted(Comparator.comparing(Task::getPosition))
-                    .toList();
-        }
-        if (status != null) {
-            return taskRepository.findByStatusOrderByPositionAsc(status);
-        }
-        if (priority != null) {
-            return taskRepository.findByPriority(priority).stream()
-                    .sorted(Comparator.comparing(Task::getPosition))
-                    .toList();
-        }
-        return taskRepository.findAll().stream()
-                .sorted(Comparator.comparing(Task::getPosition))
+        return taskService.getTasks(status, priority).stream()
+                .map(TaskResponse::from)
                 .toList();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Task> getTask(@PathVariable Long id) {
-        return taskRepository.findById(id)
-                .map(ResponseEntity::ok)
+    public ResponseEntity<TaskResponse> getTask(@PathVariable Long id) {
+        return taskService.getTask(id)
+                .map(task -> ResponseEntity.ok(TaskResponse.from(task)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<Task> createTask(@RequestBody Task task) {
-        Task saved = taskService.createTask(task);
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+    public ResponseEntity<TaskResponse> createTask(@RequestBody TaskCreateRequest request) {
+        Task saved = taskService.createTask(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(TaskResponse.from(saved));
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<Task> updateTask(@PathVariable Long id, @RequestBody TaskUpdateRequest request) {
+    public ResponseEntity<TaskResponse> updateTask(@PathVariable Long id, @RequestBody TaskUpdateRequest request) {
         return taskService.updateTask(id, request)
-                .map(ResponseEntity::ok)
+                .map(task -> ResponseEntity.ok(TaskResponse.from(task)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PatchMapping("/{id}/position")
-    public ResponseEntity<Task> moveTask(@PathVariable Long id, @RequestBody TaskMoveRequest request) {
+    public ResponseEntity<TaskResponse> moveTask(@PathVariable Long id, @RequestBody TaskMoveRequest request) {
         return taskService.moveTask(id, request)
-                .map(ResponseEntity::ok)
+                .map(task -> ResponseEntity.ok(TaskResponse.from(task)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 

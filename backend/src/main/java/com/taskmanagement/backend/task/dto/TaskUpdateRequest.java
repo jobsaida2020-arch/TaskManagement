@@ -1,4 +1,6 @@
-package com.taskmanagement.backend.task;
+package com.taskmanagement.backend.task.dto;
+
+import com.taskmanagement.backend.task.Priority;
 
 import java.time.LocalDate;
 
