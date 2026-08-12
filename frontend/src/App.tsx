@@ -1,40 +1,24 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import "./App.css";
-import { deleteTask, fetchTasks, moveTask } from "./api/tasks";
+import { deleteTask, moveTask } from "./api/tasks";
 import { Board } from "./components/Board";
 import { ConfirmDialog } from "./components/ConfirmDialog";
 import { FilterBar } from "./components/FilterBar";
 import { TaskDetailModal } from "./components/TaskDetailModal";
 import { TaskForm } from "./components/TaskForm";
+import { useTasks } from "./hooks/useTasks";
 import type { Priority, Status, Task } from "./types/task";
 
+type ModalState =
+  | { type: "add" }
+  | { type: "edit"; task: Task }
+  | { type: "delete"; task: Task }
+  | null;
+
 function App() {
-  const [tasks, setTasks] = useState<Task[]>([]);
   const [priority, setPriority] = useState<Priority | "">("");
-  const [loading, setLoading] = useState(true);
-  const [initialLoadDone, setInitialLoadDone] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [taskPendingDelete, setTaskPendingDelete] = useState<Task | null>(null);
-
-  const loadTasks = useCallback(async (priorityFilter: Priority | "") => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await fetchTasks(priorityFilter ? { priority: priorityFilter } : {});
-      setTasks(data);
-      setInitialLoadDone(true);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "タスクの取得に失敗しました");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadTasks(priority);
-  }, [priority, loadTasks]);
+  const { tasks, setTasks, loading, initialLoadDone, error, setError, reload } = useTasks(priority);
+  const [modal, setModal] = useState<ModalState>(null);
 
   const handleMoveTask = async (taskId: number, status: Status, position: number) => {
     const previousTasks = tasks;
@@ -43,7 +27,7 @@ function App() {
     );
     try {
       await moveTask(taskId, status, position);
-      loadTasks(priority);
+      reload();
     } catch (e) {
       setTasks(previousTasks);
       setError(e instanceof Error ? e.message : "タスクの移動に失敗しました");
@@ -51,15 +35,12 @@ function App() {
   };
 
   const handleDeleteConfirm = async () => {
-    const target = taskPendingDelete;
-    if (!target) return;
-    setTaskPendingDelete(null);
+    if (modal?.type !== "delete") return;
+    const target = modal.task;
+    setModal(null);
     try {
       await deleteTask(target.id);
-      if (selectedTask?.id === target.id) {
-        setSelectedTask(null);
-      }
-      loadTasks(priority);
+      reload();
     } catch (e) {
       setError(e instanceof Error ? e.message : "タスクの削除に失敗しました");
     }
@@ -74,7 +55,7 @@ function App() {
           <button
             type="button"
             className="add-task-button"
-            onClick={() => setIsFormOpen(true)}
+            onClick={() => setModal({ type: "add" })}
             aria-label="タスクを追加"
           >
             ＋
@@ -82,25 +63,18 @@ function App() {
         </div>
       </header>
 
-      {isFormOpen && (
-        <TaskForm
-          onCreated={() => loadTasks(priority)}
-          onClose={() => setIsFormOpen(false)}
-        />
+      {modal?.type === "add" && (
+        <TaskForm onCreated={reload} onClose={() => setModal(null)} />
       )}
 
-      {selectedTask && (
-        <TaskDetailModal
-          task={selectedTask}
-          onUpdated={() => loadTasks(priority)}
-          onClose={() => setSelectedTask(null)}
-        />
+      {modal?.type === "edit" && (
+        <TaskDetailModal task={modal.task} onUpdated={reload} onClose={() => setModal(null)} />
       )}
 
-      {taskPendingDelete && (
+      {modal?.type === "delete" && (
         <ConfirmDialog
-          message={`「${taskPendingDelete.title}」を削除します。よろしいですか?`}
-          onCancel={() => setTaskPendingDelete(null)}
+          message={`「${modal.task.title}」を削除します。よろしいですか?`}
+          onCancel={() => setModal(null)}
           onConfirm={handleDeleteConfirm}
         />
       )}
@@ -110,9 +84,9 @@ function App() {
       {initialLoadDone && !error && (
         <Board
           tasks={tasks}
-          onSelectTask={setSelectedTask}
+          onSelectTask={(task) => setModal({ type: "edit", task })}
           onMoveTask={handleMoveTask}
-          onDeleteRequest={setTaskPendingDelete}
+          onDeleteRequest={(task) => setModal({ type: "delete", task })}
         />
       )}
     </div>
