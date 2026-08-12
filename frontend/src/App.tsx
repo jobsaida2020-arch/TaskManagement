@@ -11,6 +11,7 @@ function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [priority, setPriority] = useState<Priority | "">("");
   const [loading, setLoading] = useState(true);
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -21,6 +22,7 @@ function App() {
     try {
       const data = await fetchTasks(priorityFilter ? { priority: priorityFilter } : {});
       setTasks(data);
+      setInitialLoadDone(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "タスクの取得に失敗しました");
     } finally {
@@ -78,9 +80,9 @@ function App() {
         />
       )}
 
-      {loading && <p className="status-message">読み込み中...</p>}
+      {loading && !initialLoadDone && <p className="status-message">読み込み中...</p>}
       {error && <p className="status-message error">{error}</p>}
-      {!loading && !error && (
+      {initialLoadDone && !error && (
         <Board tasks={tasks} onSelectTask={setSelectedTask} onMoveTask={handleMoveTask} />
       )}
     </div>

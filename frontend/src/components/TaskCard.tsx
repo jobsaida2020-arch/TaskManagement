@@ -1,5 +1,4 @@
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import type { DragEvent } from "react";
 import type { Task } from "../types/task";
 
 const PRIORITY_LABEL: Record<Task["priority"], string> = {
@@ -10,27 +9,26 @@ const PRIORITY_LABEL: Record<Task["priority"], string> = {
 
 interface TaskCardProps {
   task: Task;
+  isDragging: boolean;
   onSelect: (task: Task) => void;
+  onDragStart: (taskId: number) => void;
+  onDragEnd: () => void;
 }
 
-export function TaskCard({ task, onSelect }: TaskCardProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: task.id,
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
+export function TaskCard({ task, isDragging, onSelect, onDragStart, onDragEnd }: TaskCardProps) {
+  const handleDragStart = (e: DragEvent<HTMLDivElement>) => {
+    e.dataTransfer.setData("text/plain", String(task.id));
+    e.dataTransfer.effectAllowed = "move";
+    onDragStart(task.id);
   };
 
   return (
     <div
-      className="task-card"
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
+      className={`task-card${isDragging ? " dragging" : ""}`}
+      data-task-id={task.id}
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={onDragEnd}
       onClick={() => onSelect(task)}
     >
       <div className="task-card-title">{task.title}</div>

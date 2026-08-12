@@ -110,8 +110,33 @@
 }
 
 .board-column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
   font-weight: 600;
   margin-bottom: 12px;
+}
+
+.board-column-sort {
+  display: flex;
+  gap: 4px;
+}
+
+.sort-toggle-button {
+  font-weight: normal;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+}
+
+.sort-toggle-button.active {
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
 }
 
 .board-column-body {
@@ -125,6 +150,17 @@
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 10px 12px;
+}
+
+.task-card-placeholder {
+  border: 2px dashed var(--border);
+  border-radius: 6px;
+  min-height: 48px;
+  opacity: 0.6;
+}
+
+.task-card.dragging {
+  opacity: 0.5;
 }
 
 .task-card-title {
