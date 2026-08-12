@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { createTask } from "../api/tasks";
 import type { Priority } from "../types/task";
+import { TaskFormFields } from "./TaskFormFields";
 
 interface TaskFormProps {
   onCreated: () => void;
@@ -51,39 +52,17 @@ export function TaskForm({ onCreated, onClose }: TaskFormProps) {
           </button>
         </div>
         <form className="task-form" onSubmit={handleSubmit}>
-          <label htmlFor="task-title">タイトル</label>
-          <input
-            id="task-title"
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
+          <TaskFormFields
+            idPrefix="task"
+            title={title}
+            onTitleChange={setTitle}
+            description={description}
+            onDescriptionChange={setDescription}
+            dueDate={dueDate}
+            onDueDateChange={setDueDate}
+            priority={priority}
+            onPriorityChange={setPriority}
           />
-
-          <label htmlFor="task-description">説明</label>
-          <textarea
-            id="task-description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-
-          <label htmlFor="task-due-date">期限</label>
-          <input
-            id="task-due-date"
-            type="date"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-          />
-
-          <label htmlFor="task-priority">優先度</label>
-          <select
-            id="task-priority"
-            value={priority}
-            onChange={(e) => setPriority(e.target.value as Priority)}
-          >
-            <option value="HIGH">高</option>
-            <option value="MEDIUM">中</option>
-            <option value="LOW">低</option>
-          </select>
 
           {error && <p className="status-message error">{error}</p>}
 
