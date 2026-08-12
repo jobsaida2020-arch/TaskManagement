@@ -5,6 +5,8 @@ import com.taskmanagement.backend.task.dto.TaskMoveRequest;
 import com.taskmanagement.backend.task.dto.TaskResponse;
 import com.taskmanagement.backend.task.dto.TaskUpdateRequest;
 
+import jakarta.validation.Valid;
+
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -46,20 +48,20 @@ public class TaskController {
     }
 
     @PostMapping
-    public ResponseEntity<TaskResponse> createTask(@RequestBody TaskCreateRequest request) {
+    public ResponseEntity<TaskResponse> createTask(@Valid @RequestBody TaskCreateRequest request) {
         Task saved = taskService.createTask(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(TaskResponse.from(saved));
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<TaskResponse> updateTask(@PathVariable Long id, @RequestBody TaskUpdateRequest request) {
+    public ResponseEntity<TaskResponse> updateTask(@PathVariable Long id, @Valid @RequestBody TaskUpdateRequest request) {
         return taskService.updateTask(id, request)
                 .map(task -> ResponseEntity.ok(TaskResponse.from(task)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PatchMapping("/{id}/position")
-    public ResponseEntity<TaskResponse> moveTask(@PathVariable Long id, @RequestBody TaskMoveRequest request) {
+    public ResponseEntity<TaskResponse> moveTask(@PathVariable Long id, @Valid @RequestBody TaskMoveRequest request) {
         return taskService.moveTask(id, request)
                 .map(task -> ResponseEntity.ok(TaskResponse.from(task)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
