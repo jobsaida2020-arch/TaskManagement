@@ -38,3 +38,34 @@ export async function createTask(input: CreateTaskInput): Promise<Task> {
   }
   return response.json();
 }
+
+export interface UpdateTaskInput {
+  title?: string;
+  description?: string;
+  dueDate?: string | null;
+  priority?: Priority;
+}
+
+export async function updateTask(id: number, input: UpdateTaskInput): Promise<Task> {
+  const response = await fetch(`${API_BASE_URL}/api/tasks/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!response.ok) {
+    throw new Error(`タスクの更新に失敗しました (status: ${response.status})`);
+  }
+  return response.json();
+}
+
+export async function moveTask(id: number, status: Status, position: number): Promise<Task> {
+  const response = await fetch(`${API_BASE_URL}/api/tasks/${id}/position`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status, position }),
+  });
+  if (!response.ok) {
+    throw new Error(`タスクの移動に失敗しました (status: ${response.status})`);
+  }
+  return response.json();
+}
