@@ -13,9 +13,17 @@ interface TaskCardProps {
   onSelect: (task: Task) => void;
   onDragStart: (taskId: number) => void;
   onDragEnd: () => void;
+  onDeleteRequest: (task: Task) => void;
 }
 
-export function TaskCard({ task, isDragging, onSelect, onDragStart, onDragEnd }: TaskCardProps) {
+export function TaskCard({
+  task,
+  isDragging,
+  onSelect,
+  onDragStart,
+  onDragEnd,
+  onDeleteRequest,
+}: TaskCardProps) {
   const handleDragStart = (e: DragEvent<HTMLDivElement>) => {
     e.dataTransfer.setData("text/plain", String(task.id));
     e.dataTransfer.effectAllowed = "move";
@@ -31,7 +39,20 @@ export function TaskCard({ task, isDragging, onSelect, onDragStart, onDragEnd }:
       onDragEnd={onDragEnd}
       onClick={() => onSelect(task)}
     >
-      <div className="task-card-title">{task.title}</div>
+      <div className="task-card-header">
+        <div className="task-card-title">{task.title}</div>
+        <button
+          type="button"
+          className="task-card-delete"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDeleteRequest(task);
+          }}
+          aria-label="タスクを削除"
+        >
+          🗑️
+        </button>
+      </div>
       {task.description && <div className="task-card-description">{task.description}</div>}
       <div className="task-card-meta">
         <span className={`priority-badge priority-${task.priority.toLowerCase()}`}>

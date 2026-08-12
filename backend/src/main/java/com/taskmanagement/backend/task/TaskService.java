@@ -63,6 +63,14 @@ public class TaskService {
         });
     }
 
+    public boolean deleteTask(Long id) {
+        if (!taskRepository.existsById(id)) {
+            return false;
+        }
+        taskRepository.deleteById(id);
+        return true;
+    }
+
     private void reindex(List<Task> tasks) {
         for (int i = 0; i < tasks.size(); i++) {
             tasks.get(i).setPosition(i);
