@@ -118,6 +118,7 @@
   gap: 8px;
   font-weight: 600;
   margin-bottom: 12px;
+  color: var(--ink);
 }
 
 .board-column-sort {
@@ -132,7 +133,7 @@
   border-radius: 12px;
   border: 1px solid var(--border);
   background: var(--code-bg);
-  color: var(--text);
+  color: var(--ink);
   cursor: pointer;
 }
 
@@ -170,7 +171,7 @@
   border-radius: 6px;
   padding: 4px 5px;
   font-size: calc(0.7em + 2px);
-  color: var(--text);
+  color: var(--ink);
   opacity: 0.55;
   cursor: pointer;
   text-align: center;
@@ -197,6 +198,7 @@
   font-weight: 600;
   font-size: 0.95em;
   margin-bottom: 1px;
+  color: var(--ink);
 }
 
 .task-card-delete {
@@ -205,8 +207,8 @@
   height: 16px;
   border-radius: 50%;
   border: 1px solid var(--border);
-  background: #fff;
-  color: var(--text);
+  background: rgb(238, 231, 210);
+  color: var(--ink);
   font-size: 9px;
   line-height: 1;
   padding: 0;
@@ -222,7 +224,7 @@
 
 .task-card-description {
   font-size: 0.85em;
-  color: var(--text);
+  color: var(--ink);
   margin-bottom: 2px;
 }
 
@@ -255,5 +257,5 @@
 }
 
 .due-date {
-  color: var(--text);
+  color: var(--ink);
 }
