@@ -2,15 +2,16 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { createTask } from "../api/tasks";
 import { useEscapeKey } from "../hooks/useEscapeKey";
-import type { Priority } from "../types/task";
+import type { Priority, Status } from "../types/task";
 import { TaskFormFields } from "./TaskFormFields";
 
 interface TaskFormProps {
+  initialStatus: Status;
   onCreated: () => void;
   onClose: () => void;
 }
 
-export function TaskForm({ onCreated, onClose }: TaskFormProps) {
+export function TaskForm({ initialStatus, onCreated, onClose }: TaskFormProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -35,6 +36,7 @@ export function TaskForm({ onCreated, onClose }: TaskFormProps) {
         description: description || undefined,
         dueDate: dueDate || null,
         priority,
+        status: initialStatus,
       });
       onCreated();
       onClose();

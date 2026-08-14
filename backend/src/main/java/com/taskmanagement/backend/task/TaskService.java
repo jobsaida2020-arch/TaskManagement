@@ -49,6 +49,9 @@ public class TaskService {
         if (request.priority() != null) {
             task.setPriority(request.priority());
         }
+        if (request.status() != null) {
+            task.setStatus(request.status());
+        }
         task.setPosition(nextPosition(task.getStatus()));
         return taskRepository.save(task);
     }

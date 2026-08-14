@@ -10,7 +10,7 @@ import { useTasks } from "./hooks/useTasks";
 import type { Priority, Status, Task } from "./types/task";
 
 type ModalState =
-  | { type: "add" }
+  | { type: "add"; status: Status }
   | { type: "edit"; task: Task }
   | { type: "delete"; task: Task }
   | null;
@@ -52,19 +52,11 @@ function App() {
         <h1>タスクボード</h1>
         <div className="app-header-actions">
           <FilterBar priority={priority} onChange={setPriority} />
-          <button
-            type="button"
-            className="add-task-button"
-            onClick={() => setModal({ type: "add" })}
-            aria-label="タスクを追加"
-          >
-            ＋
-          </button>
         </div>
       </header>
 
       {modal?.type === "add" && (
-        <TaskForm onCreated={reload} onClose={() => setModal(null)} />
+        <TaskForm initialStatus={modal.status} onCreated={reload} onClose={() => setModal(null)} />
       )}
 
       {modal?.type === "edit" && (
@@ -87,6 +79,7 @@ function App() {
           onSelectTask={(task) => setModal({ type: "edit", task })}
           onMoveTask={handleMoveTask}
           onDeleteRequest={(task) => setModal({ type: "delete", task })}
+          onAddTask={(status) => setModal({ type: "add", status })}
         />
       )}
     </div>

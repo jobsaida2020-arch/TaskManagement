@@ -7,6 +7,11 @@ const PRIORITY_LABEL: Record<Task["priority"], string> = {
   LOW: "低",
 };
 
+function formatDueDateShort(dueDate: string): string {
+  const [, month, day] = dueDate.split("-");
+  return `${month}/${day}`;
+}
+
 interface TaskCardProps {
   task: Task;
   isDragging: boolean;
@@ -65,12 +70,11 @@ export function TaskCard({
           🗑️
         </button>
       </div>
-      {task.description && <div className="task-card-description">{task.description}</div>}
       <div className="task-card-meta">
         <span className={`priority-badge priority-${task.priority.toLowerCase()}`}>
           {PRIORITY_LABEL[task.priority]}
         </span>
-        {task.dueDate && <span className="due-date">期限: {task.dueDate}</span>}
+        {task.dueDate && <span className="due-date">期限: {formatDueDateShort(task.dueDate)}</span>}
       </div>
     </div>
   );
