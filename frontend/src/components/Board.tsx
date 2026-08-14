@@ -33,6 +33,7 @@ interface BoardProps {
   onSelectTask: (task: Task) => void;
   onMoveTask: (taskId: number, status: Status, position: number) => void;
   onDeleteRequest: (task: Task) => void;
+  onAddTask: (status: Status) => void;
 }
 
 function tasksOfStatus(tasks: Task[], status: Status): Task[] {
@@ -94,6 +95,7 @@ function Column({
   onColumnDragOver,
   onColumnDrop,
   onDeleteRequest,
+  onAddTask,
 }: {
   status: Status;
   label: string;
@@ -108,6 +110,7 @@ function Column({
   onColumnDragOver: (status: Status, e: DragEvent<HTMLDivElement>) => void;
   onColumnDrop: (status: Status, e: DragEvent<HTMLDivElement>) => void;
   onDeleteRequest: (task: Task) => void;
+  onAddTask: (status: Status) => void;
 }) {
   const placeholderIndex = dropTarget?.status === status ? dropTarget.index : null;
 
@@ -156,12 +159,19 @@ function Column({
             />
           ),
         )}
+        <button
+          type="button"
+          className="add-task-row"
+          onClick={() => onAddTask(status)}
+        >
+          ＋ タスク追加
+        </button>
       </div>
     </div>
   );
 }
 
-export function Board({ tasks, onSelectTask, onMoveTask, onDeleteRequest }: BoardProps) {
+export function Board({ tasks, onSelectTask, onMoveTask, onDeleteRequest, onAddTask }: BoardProps) {
   const [columnSort, setColumnSort] = useState<Record<Status, SortMode>>({
     NOT_STARTED: "manual",
     IN_PROGRESS: "manual",
@@ -232,6 +242,7 @@ export function Board({ tasks, onSelectTask, onMoveTask, onDeleteRequest }: Boar
           onColumnDragOver={handleColumnDragOver}
           onColumnDrop={handleColumnDrop}
           onDeleteRequest={onDeleteRequest}
+          onAddTask={onAddTask}
         />
       ))}
     </div>

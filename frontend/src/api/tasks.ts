@@ -25,6 +25,7 @@ export interface CreateTaskInput {
   description?: string;
   dueDate?: string | null;
   priority?: Priority;
+  status?: Status;
 }
 
 export async function createTask(input: CreateTaskInput): Promise<Task> {

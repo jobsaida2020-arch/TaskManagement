@@ -64,4 +64,19 @@ class TaskApiIntegrationTest {
         ResponseEntity<Map> afterDelete = restTemplate.getForEntity(url("/api/tasks/" + id), Map.class);
         assertThat(afterDelete.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
+
+    @Test
+    void タスク作成時にstatusを指定するとその列に直接追加される() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        ResponseEntity<Map> created = restTemplate.postForEntity(
+                url("/api/tasks"),
+                new HttpEntity<>(Map.of("title", "進行中で作成", "status", "IN_PROGRESS"), headers),
+                Map.class);
+
+        assertThat(created.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(created.getBody().get("status")).isEqualTo("IN_PROGRESS");
+        assertThat(created.getBody().get("position")).isEqualTo(0);
+    }
 }

@@ -82,8 +82,7 @@ export function TaskDetailModal({ task, onUpdated, onClose }: TaskDetailModalPro
 
           <p className="status-message">ステータス: {STATUS_LABEL[task.status]}</p>
           <p className="status-message">
-            作成日時: {new Date(task.createdAt).toLocaleString("ja-JP")} / 更新日時:{" "}
-            {new Date(task.updatedAt).toLocaleString("ja-JP")}
+            作成日時: {new Date(task.createdAt).toLocaleString("ja-JP")}
           </p>
 
           {error && <p className="status-message error">{error}</p>}

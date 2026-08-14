@@ -57,11 +57,24 @@ class TaskServiceTest {
                 .thenReturn(List.of(task(1L, Status.NOT_STARTED, 0), task(2L, Status.NOT_STARTED, 1)));
         when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Task created = taskService.createTask(new TaskCreateRequest("新規タスク", null, null, null));
+        Task created = taskService.createTask(new TaskCreateRequest("新規タスク", null, null, null, null));
 
         assertThat(created.getTitle()).isEqualTo("新規タスク");
         assertThat(created.getStatus()).isEqualTo(Status.NOT_STARTED);
         assertThat(created.getPosition()).isEqualTo(2);
+    }
+
+    @Test
+    void createTask_statusを指定するとその列のpositionで採番される() {
+        when(taskRepository.findByStatusOrderByPositionAsc(Status.IN_PROGRESS))
+                .thenReturn(List.of(task(1L, Status.IN_PROGRESS, 0)));
+        when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Task created = taskService.createTask(
+                new TaskCreateRequest("進行中タスク", null, null, null, Status.IN_PROGRESS));
+
+        assertThat(created.getStatus()).isEqualTo(Status.IN_PROGRESS);
+        assertThat(created.getPosition()).isEqualTo(1);
     }
 
     @Test
