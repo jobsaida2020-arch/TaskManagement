@@ -1,4 +1,5 @@
 import type { DragEvent, KeyboardEvent } from "react";
+import { formatCountdown, useCountdown } from "../hooks/useCountdown";
 import type { Task } from "../types/task";
 
 const PRIORITY_LABEL: Record<Task["priority"], string> = {
@@ -10,6 +11,20 @@ const PRIORITY_LABEL: Record<Task["priority"], string> = {
 function formatDueDateShort(dueDate: string): string {
   const [, month, day] = dueDate.split("-");
   return `${month}/${day}`;
+}
+
+function useDueDateDisplay(task: Task): { text: string; isUrgent: boolean } {
+  const countdown = useCountdown(task.dueDate);
+  const isDone = task.status === "DONE";
+
+  if (!task.dueDate) return { text: "", isUrgent: false };
+  if (!countdown || !countdown.isWithin7Days || isDone) {
+    return { text: `期限: ${formatDueDateShort(task.dueDate)}`, isUrgent: false };
+  }
+  if (countdown.isOverdue) {
+    return { text: "期限切れ", isUrgent: true };
+  }
+  return { text: formatCountdown(countdown.msRemaining), isUrgent: countdown.isUrgent };
 }
 
 interface TaskCardProps {
@@ -29,6 +44,8 @@ export function TaskCard({
   onDragEnd,
   onDeleteRequest,
 }: TaskCardProps) {
+  const dueDateDisplay = useDueDateDisplay(task);
+
   const handleDragStart = (e: DragEvent<HTMLDivElement>) => {
     e.dataTransfer.setData("text/plain", String(task.id));
     e.dataTransfer.effectAllowed = "move";
@@ -74,7 +91,11 @@ export function TaskCard({
         <span className={`priority-badge priority-${task.priority.toLowerCase()}`}>
           {PRIORITY_LABEL[task.priority]}
         </span>
-        {task.dueDate && <span className="due-date">期限: {formatDueDateShort(task.dueDate)}</span>}
+        {task.dueDate && (
+          <span className={`due-date${dueDateDisplay.isUrgent ? " due-date-urgent" : ""}`}>
+            {dueDateDisplay.text}
+          </span>
+        )}
       </div>
     </div>
   );

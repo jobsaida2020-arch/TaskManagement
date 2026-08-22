@@ -6,6 +6,7 @@ import { ConfirmDialog } from "./components/ConfirmDialog";
 import { FilterBar } from "./components/FilterBar";
 import { TaskDetailModal } from "./components/TaskDetailModal";
 import { TaskForm } from "./components/TaskForm";
+import { useAlarm } from "./hooks/useAlarm";
 import { useTasks } from "./hooks/useTasks";
 import type { Priority, Status, Task } from "./types/task";
 
@@ -19,6 +20,7 @@ function App() {
   const [priority, setPriority] = useState<Priority | "">("");
   const { tasks, setTasks, loading, initialLoadDone, error, setError, reload } = useTasks(priority);
   const [modal, setModal] = useState<ModalState>(null);
+  const { muted, toggleMuted } = useAlarm(tasks);
 
   const handleMoveTask = async (taskId: number, status: Status, position: number) => {
     const previousTasks = tasks;
@@ -52,6 +54,14 @@ function App() {
         <h1>タスクボード</h1>
         <div className="app-header-actions">
           <FilterBar priority={priority} onChange={setPriority} />
+          <button
+            type="button"
+            className={`mute-toggle-button${muted ? " muted" : ""}`}
+            onClick={toggleMuted}
+            aria-pressed={muted}
+          >
+            {muted ? "🔇 ミュート中" : "🔔 アラーム音"}
+          </button>
         </div>
       </header>
 
